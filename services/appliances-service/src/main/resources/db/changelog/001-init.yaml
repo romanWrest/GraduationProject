@@ -1,0 +1,248 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-appliance
+      author: appliances-service
+      changes:
+        - createTable:
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resident_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: room_id
+                  type: UUID
+              - column:
+                  name: type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: brand
+                  type: VARCHAR(128)
+              - column:
+                  name: model
+                  type: VARCHAR(128)
+              - column:
+                  name: power_watts
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: photo_url
+                  type: VARCHAR(512)
+              - column:
+                  name: notes
+                  type: VARCHAR(512)
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: decision_by
+                  type: UUID
+              - column:
+                  name: decision_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: decision_reason
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: "ALTER TABLE appliances.appliance ADD CONSTRAINT chk_appliance_power CHECK (power_watts > 0)"
+            dbms: postgresql
+
+  - changeSet:
+      id: 001-create-appliance-history
+      author: appliances-service
+      changes:
+        - createTable:
+            schemaName: appliances
+            tableName: appliance_history
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: appliance_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_history_appliance
+                    referencedTableSchemaName: appliances
+                    referencedTableName: appliance
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: from_status
+                  type: VARCHAR(32)
+              - column:
+                  name: to_status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_id
+                  type: UUID
+              - column:
+                  name: reason
+                  type: TEXT
+              - column:
+                  name: changed_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-processed-events
+      author: appliances-service
+      changes:
+        - createTable:
+            schemaName: appliances
+            tableName: processed_events
+            columns:
+              - column:
+                  name: event_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-outbox-events
+      author: appliances-service
+      changes:
+        - createTable:
+            schemaName: appliances
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+  - changeSet:
+      id: 001-indexes
+      author: appliances-service
+      changes:
+        - createIndex:
+            indexName: idx_appliance_resident
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: resident_id
+        - createIndex:
+            indexName: idx_appliance_user
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_appliance_room
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: room_id
+        - createIndex:
+            indexName: idx_appliance_status
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_appliance_status_room
+            schemaName: appliances
+            tableName: appliance
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: room_id
+        - createIndex:
+            indexName: idx_history_appliance
+            schemaName: appliances
+            tableName: appliance_history
+            columns:
+              - column:
+                  name: appliance_id
+              - column:
+                  name: changed_at
+        - sql:
+            sql: "CREATE INDEX idx_outbox_unsent ON appliances.outbox_events (created_at) WHERE sent_at IS NULL"
+            dbms: postgresql

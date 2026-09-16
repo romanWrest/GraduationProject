@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dormitory
+  data:
+    redis:
+      host: localhost
+  kafka:
+    bootstrap-servers: localhost:9092
+
+logging:
+  level:
+    ru.dstu.dormitory.auth_service: DEBUG

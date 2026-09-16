@@ -1,0 +1,4 @@
+app:
+  reports:
+    max-rows: ${APP_REPORT_MAX_ROWS:100000}
+    max-period-months: ${APP_REPORT_MAX_PERIOD_MONTHS:24}

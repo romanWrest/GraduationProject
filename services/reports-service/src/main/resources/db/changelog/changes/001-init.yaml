@@ -1,0 +1,138 @@
+databaseChangeLog:
+  # ─── users_view ───
+  - changeSet:
+      id: 001-create-users-view
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: users_view
+            columns:
+              - column: { name: user_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: email, type: VARCHAR(255) }
+              - column: { name: full_name, type: VARCHAR(255) }
+              - column: { name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: NOW(), constraints: { nullable: false } }
+
+  # ─── requests_view ───
+  - changeSet:
+      id: 001-create-requests-view
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: requests_view
+            columns:
+              - column: { name: request_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: type, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: author_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: author_name, type: VARCHAR(255) }
+              - column: { name: assignee_id, type: UUID }
+              - column: { name: assignee_name, type: VARCHAR(255) }
+              - column: { name: target_pool, type: VARCHAR(32) }
+              - column: { name: room_id, type: UUID }
+              - column: { name: room_number, type: VARCHAR(32) }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: closed_at, type: TIMESTAMP WITH TIME ZONE }
+              - column: { name: resolution_seconds, type: BIGINT }
+              - column: { name: auto_closed, type: BOOLEAN }
+        - sql:
+            sql: CREATE INDEX idx_requests_view_period ON reports.requests_view (created_at)
+        - sql:
+            sql: CREATE INDEX idx_requests_view_assignee ON reports.requests_view (assignee_id, status)
+        - sql:
+            sql: CREATE INDEX idx_requests_view_type_status ON reports.requests_view (type, status)
+
+  # ─── residents_view ───
+  - changeSet:
+      id: 001-create-residents-view
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: residents_view
+            columns:
+              - column: { name: resident_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: full_name, type: VARCHAR(255) }
+              - column: { name: kind, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: faculty, type: VARCHAR(128) }
+              - column: { name: study_group, type: VARCHAR(64) }
+              - column: { name: department, type: VARCHAR(128) }
+              - column: { name: room_id, type: UUID }
+              - column: { name: room_number, type: VARCHAR(32) }
+              - column: { name: enrolled_at, type: DATE, constraints: { nullable: false } }
+              - column: { name: evicted_at, type: DATE }
+        - sql:
+            sql: CREATE INDEX idx_residents_view_active ON reports.residents_view (evicted_at) WHERE evicted_at IS NULL
+        - sql:
+            sql: CREATE INDEX idx_residents_view_kind ON reports.residents_view (kind)
+
+  # ─── appliances_view ───
+  - changeSet:
+      id: 001-create-appliances-view
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: appliances_view
+            columns:
+              - column: { name: appliance_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: resident_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: resident_name, type: VARCHAR(255) }
+              - column: { name: room_id, type: UUID }
+              - column: { name: room_number, type: VARCHAR(32) }
+              - column: { name: type, type: VARCHAR(64), constraints: { nullable: false } }
+              - column: { name: brand, type: VARCHAR(128) }
+              - column: { name: model, type: VARCHAR(128) }
+              - column: { name: power_watts, type: INT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - sql:
+            sql: CREATE INDEX idx_appliances_view_status ON reports.appliances_view (status)
+        - sql:
+            sql: CREATE INDEX idx_appliances_view_room ON reports.appliances_view (room_id)
+
+  # ─── consumables_view ───
+  - changeSet:
+      id: 001-create-consumables-view
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: consumables_view
+            columns:
+              - column: { name: issue_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: resident_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: resident_name, type: VARCHAR(255) }
+              - column: { name: type_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: type_name, type: VARCHAR(128) }
+              - column: { name: quantity, type: INT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: issued_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: returned_at, type: TIMESTAMP WITH TIME ZONE }
+              - column: { name: return_condition, type: VARCHAR(32) }
+        - sql:
+            sql: CREATE INDEX idx_consumables_view_period ON reports.consumables_view (issued_at)
+        - sql:
+            sql: CREATE INDEX idx_consumables_view_resident ON reports.consumables_view (resident_id)
+
+  # ─── processed_events ───
+  - changeSet:
+      id: 001-create-processed-events
+      author: reports-service
+      changes:
+        - createTable:
+            schemaName: reports
+            tableName: processed_events
+            columns:
+              - column: { name: event_id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: event_type, type: VARCHAR(64), constraints: { nullable: false } }
+              - column: { name: topic, type: VARCHAR(64) }
+              - column: { name: processed_at, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: NOW(), constraints: { nullable: false } }
+        - sql:
+            sql: CREATE INDEX idx_processed_events_topic_at ON reports.processed_events (topic, processed_at DESC)

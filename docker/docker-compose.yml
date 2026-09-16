@@ -1,0 +1,391 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: dormitory-postgres
+    environment:
+      POSTGRES_DB: dormitory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dormitory"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: dormitory-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: dormitory-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  
+
+
+
+  minio:
+    image: minio/minio:latest
+    container_name: dormitory-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: dormitory-kafka
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://dormitory-kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://dormitory-kafka:29093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@dormitory-kafka:29093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+  auth-service:
+    build:
+      context: ../services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      ADMIN_INITIAL_PASSWORD: Admin12345!
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  residents-service:
+    build:
+      context: ../services/residents-service
+      dockerfile: Dockerfile
+    container_name: residents-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      AUTH_SERVICE_URL: http://auth-service:8081
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  requests-service:
+    build:
+      context: ../services/requests-service
+      dockerfile: Dockerfile
+    container_name: requests-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      minio:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      residents-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      AUTH_SERVICE_URL: http://auth-service:8081
+      RESIDENTS_SERVICE_URL: http://residents-service:8083
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: requests-attachments
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  appliances-service:
+    build:
+      context: ../services/appliances-service
+      dockerfile: Dockerfile
+    container_name: appliances-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      residents-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      RESIDENTS_SERVICE_URL: http://residents-service:8083
+      APP_ROOM_POWER_LIMIT_WATTS: "3500"
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  consumables-service:
+    build:
+      context: ../services/consumables-service
+      dockerfile: Dockerfile
+    container_name: consumables-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      residents-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      RESIDENTS_SERVICE_URL: http://residents-service:8083
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  notifications-service:
+    build:
+      context: ../services/notifications-service
+      dockerfile: Dockerfile
+    container_name: notifications-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      mailhog:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      SERVICE_TOKEN: change-me-service-token
+      AUTH_SERVICE_URL: http://auth-service:8081
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_AUTH: "false"
+      SMTP_STARTTLS: "false"
+      MAIL_FROM: noreply@dormitory.local
+      APP_FRONTEND_BASE_URL: http://localhost:3000
+    ports:
+      - "8087:8087"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  reports-service:
+    build:
+      context: ../services/reports-service
+      dockerfile: Dockerfile
+    container_name: reports-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/dormitory
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      KAFKA_BROKERS: dormitory-kafka:29092
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      APP_REPORT_MAX_ROWS: 100000
+      APP_REPORT_MAX_PERIOD_MONTHS: 24
+    ports:
+      - "8088:8088"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: ../services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      reports-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: change-me-in-prod-minimum-32-characters-long-secret
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+      RATE_LIMIT_REPLENISH: 30
+      RATE_LIMIT_BURST: 60
+      AUTH_SERVICE_URL: http://auth-service:8081
+      REQUESTS_SERVICE_URL: http://requests-service:8082
+      RESIDENTS_SERVICE_URL: http://residents-service:8083
+      APPLIANCES_SERVICE_URL: http://appliances-service:8084
+      CONSUMABLES_SERVICE_URL: http://consumables-service:8085
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:8087
+      REPORTS_SERVICE_URL: http://reports-service:8088
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  ─── frontend (React SPA на nginx) ───
+  Раскомментируйте, чтобы поднимать SPA в составе compose.
+  Перед этим рядом с frontend/nginx.conf лежит конфиг прокси на api-gateway.
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: dormitory-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8080
+    depends_on:
+      - postgres
+
+volumes:
+  postgres-data:
+  kafka-data:
+  redis-data:
+  minio-data:

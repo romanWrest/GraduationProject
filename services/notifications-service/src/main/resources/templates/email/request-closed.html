@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Заявка закрыта</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Пользователь</span>!</h1>
+    <p>Заявка <strong>#<span th:text="${requestShortId}">—</span></strong> закрыта.</p>
+    <p th:if="${autoClosed}">(автоматическое закрытие)</p>
+    <p><a th:href="${actionUrl}" th:text="${actionUrl}">Открыть заявку</a></p>
+</body>
+</html>

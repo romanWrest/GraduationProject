@@ -1,0 +1,4 @@
+admin:
+  initial-email: admin@dormitory.local
+  initial-password: ${ADMIN_INITIAL_PASSWORD:Admin12345!}
+  initial-full-name: Администратор

@@ -1,0 +1,285 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-consumable-type
+      author: consumables-service
+      changes:
+        - createTable:
+            schemaName: consumables
+            tableName: consumable_type
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_consumable_type_name
+              - column:
+                  name: unit
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stock
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: low_stock_threshold
+                  type: INT
+                  defaultValueNumeric: 5
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: "ALTER TABLE consumables.consumable_type ADD CONSTRAINT chk_consumable_type_stock CHECK (stock >= 0)"
+            dbms: postgresql
+
+  - changeSet:
+      id: 001-create-consumable-issue
+      author: consumables-service
+      changes:
+        - createTable:
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resident_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_issue_type
+                    referencedTableSchemaName: consumables
+                    referencedTableName: consumable_type
+                    referencedColumnNames: id
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issued_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: returned_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: returned_by
+                  type: UUID
+              - column:
+                  name: return_condition
+                  type: VARCHAR(32)
+              - column:
+                  name: notes
+                  type: VARCHAR(512)
+        - sql:
+            sql: "ALTER TABLE consumables.consumable_issue ADD CONSTRAINT chk_issue_quantity CHECK (quantity > 0)"
+            dbms: postgresql
+
+  - changeSet:
+      id: 001-create-stock-movement
+      author: consumables-service
+      changes:
+        - createTable:
+            schemaName: consumables
+            tableName: stock_movement
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_movement_type
+                    referencedTableSchemaName: consumables
+                    referencedTableName: consumable_type
+                    referencedColumnNames: id
+              - column:
+                  name: delta
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_id
+                  type: UUID
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-processed-events
+      author: consumables-service
+      changes:
+        - createTable:
+            schemaName: consumables
+            tableName: processed_events
+            columns:
+              - column:
+                  name: event_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-outbox-events
+      author: consumables-service
+      changes:
+        - createTable:
+            schemaName: consumables
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+  - changeSet:
+      id: 001-indexes
+      author: consumables-service
+      changes:
+        - createIndex:
+            indexName: idx_issue_resident
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: resident_id
+        - createIndex:
+            indexName: idx_issue_user
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_issue_type
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: type_id
+        - createIndex:
+            indexName: idx_issue_status
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_issue_status_resident
+            schemaName: consumables
+            tableName: consumable_issue
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: resident_id
+        - sql:
+            sql: "CREATE INDEX idx_movement_type ON consumables.stock_movement (type_id, created_at DESC)"
+            dbms: postgresql
+        - sql:
+            sql: "CREATE INDEX idx_outbox_unsent ON consumables.outbox_events (created_at) WHERE sent_at IS NULL"
+            dbms: postgresql

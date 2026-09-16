@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Выселение</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Жилец</span>!</h1>
+    <p>Вы выселены из общежития.</p>
+    <p>Дата: <span th:text="${evictedAt}">—</span>.</p>
+    <p th:if="${reason}">Причина: <span th:text="${reason}">—</span></p>
+</body>
+</html>

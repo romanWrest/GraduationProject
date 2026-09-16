@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Заселение</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Жилец</span>!</h1>
+    <p>Вы заселены в комнату <strong th:text="${roomNumber}">—</strong>.</p>
+    <p>Дата заселения: <span th:text="${enrolledAt}">—</span>.</p>
+    <p><a th:href="${actionUrl}">Перейти в личный кабинет</a></p>
+</body>
+</html>

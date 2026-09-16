@@ -1,0 +1,30 @@
+export const ROLES = {
+  ADMIN: 'ADMIN',
+  RESIDENT: 'RESIDENT',
+  GATEKEEPER: 'GATEKEEPER',
+  EXECUTOR_ELECTRIC: 'EXECUTOR_ELECTRIC',
+  EXECUTOR_PLUMBING: 'EXECUTOR_PLUMBING',
+  EXECUTOR_CARPENTRY: 'EXECUTOR_CARPENTRY',
+  EXECUTOR_GAS: 'EXECUTOR_GAS',
+  PROPERTY_MANAGER: 'PROPERTY_MANAGER',
+} as const;
+
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+export const EXECUTOR_ROLES: Role[] = [
+  ROLES.EXECUTOR_ELECTRIC,
+  ROLES.EXECUTOR_PLUMBING,
+  ROLES.EXECUTOR_CARPENTRY,
+  ROLES.EXECUTOR_GAS,
+];
+
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Администратор',
+  RESIDENT: 'Жилец',
+  GATEKEEPER: 'Вахтёр',
+  EXECUTOR_ELECTRIC: 'Электрик',
+  EXECUTOR_PLUMBING: 'Сантехник',
+  EXECUTOR_CARPENTRY: 'Плотник',
+  EXECUTOR_GAS: 'Газовик',
+  PROPERTY_MANAGER: 'Управляющий имуществом',
+};

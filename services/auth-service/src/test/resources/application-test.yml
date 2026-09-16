@@ -1,0 +1,60 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: auth
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: auth
+  kafka:
+    producer:
+      acks: all
+      retries: 3
+    consumer:
+      group-id: auth-service-test
+
+jwt:
+  secret: dev-secret-for-local-minimum-32-characters-please-override
+  access-ttl: PT15M
+  refresh-ttl: P1D
+  issuer: auth-service-test
+
+security:
+  cors:
+    allowed-origins: http://localhost:3000
+  service-token: test-service-token
+
+ratelimit:
+  login:
+    ip-max: 50
+    ip-window-seconds: 60
+    email-max: 50
+    email-window-seconds: 300
+
+password:
+  bcrypt-cost: 4
+  reset-ttl-minutes: 30
+
+admin:
+  initial-email: admin@dormitory.local
+  initial-password: Admin12345!
+  initial-full-name: Админ
+
+outbox:
+  relay:
+    batch-size: 100
+    fixed-delay-ms: 1000
+
+management:
+  otlp:
+    tracing:
+      export:
+        enabled: false
+
+logging:
+  level:
+    root: WARN
+    ru.dstu.dormitory.auth_service: INFO

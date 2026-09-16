@@ -1,0 +1,298 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-request
+      author: requests-service
+      changes:
+        - createTable:
+            schemaName: requests
+            tableName: request
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author_resident_id
+                  type: UUID
+              - column:
+                  name: room_id
+                  type: UUID
+              - column:
+                  name: type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: VARCHAR(1000)
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_pool
+                  type: VARCHAR(32)
+              - column:
+                  name: assignee_id
+                  type: UUID
+              - column:
+                  name: scheduled_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: resolution_comment
+                  type: TEXT
+              - column:
+                  name: rejection_reason
+                  type: TEXT
+              - column:
+                  name: cancellation_reason
+                  type: TEXT
+              - column:
+                  name: reopen_reason
+                  type: TEXT
+              - column:
+                  name: auto_closed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: closed_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+  - changeSet:
+      id: 001-create-request-comment
+      author: requests-service
+      changes:
+        - createTable:
+            schemaName: requests
+            tableName: request_comment
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: request_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_comment_request
+                    referencedTableSchemaName: requests
+                    referencedTableName: request
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-request-attachment
+      author: requests-service
+      changes:
+        - createTable:
+            schemaName: requests
+            tableName: request_attachment
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: request_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_attachment_request
+                    referencedTableSchemaName: requests
+                    referencedTableName: request
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: object_key
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: original_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size_bytes
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: uploaded_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: uploaded_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-request-status-history
+      author: requests-service
+      changes:
+        - createTable:
+            schemaName: requests
+            tableName: request_status_history
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: request_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_history_request
+                    referencedTableSchemaName: requests
+                    referencedTableName: request
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: from_status
+                  type: VARCHAR(32)
+              - column:
+                  name: to_status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_id
+                  type: UUID
+              - column:
+                  name: comment
+                  type: TEXT
+              - column:
+                  name: changed_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-indexes
+      author: requests-service
+      changes:
+        - createIndex:
+            indexName: idx_request_status
+            schemaName: requests
+            tableName: request
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_request_author
+            schemaName: requests
+            tableName: request
+            columns:
+              - column:
+                  name: author_id
+        - sql:
+            sql: "CREATE INDEX idx_request_assignee ON requests.request (assignee_id) WHERE assignee_id IS NOT NULL"
+            dbms: postgresql
+        - sql:
+            sql: "CREATE INDEX idx_request_pool ON requests.request (target_pool, status) WHERE status = 'IN_REVIEW'"
+            dbms: postgresql
+        - createIndex:
+            indexName: idx_request_type_status
+            schemaName: requests
+            tableName: request
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: status
+        - sql:
+            sql: "CREATE INDEX idx_request_created ON requests.request (created_at DESC)"
+            dbms: postgresql
+        - sql:
+            sql: "CREATE INDEX idx_request_closed_done ON requests.request (updated_at) WHERE status = 'DONE'"
+            dbms: postgresql
+        - createIndex:
+            indexName: idx_comment_request
+            schemaName: requests
+            tableName: request_comment
+            columns:
+              - column:
+                  name: request_id
+              - column:
+                  name: created_at
+        - createIndex:
+            indexName: idx_attachment_request
+            schemaName: requests
+            tableName: request_attachment
+            columns:
+              - column:
+                  name: request_id
+        - createIndex:
+            indexName: idx_history_request
+            schemaName: requests
+            tableName: request_status_history
+            columns:
+              - column:
+                  name: request_id
+              - column:
+                  name: changed_at

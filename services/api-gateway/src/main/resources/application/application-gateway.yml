@@ -1,0 +1,117 @@
+app:
+  service-urls:
+    auth: ${AUTH_SERVICE_URL:http://localhost:8081}
+    requests: ${REQUESTS_SERVICE_URL:http://localhost:8082}
+    residents: ${RESIDENTS_SERVICE_URL:http://localhost:8083}
+    appliances: ${APPLIANCES_SERVICE_URL:http://localhost:8084}
+    consumables: ${CONSUMABLES_SERVICE_URL:http://localhost:8085}
+    notifications: ${NOTIFICATIONS_SERVICE_URL:http://localhost:8087}
+    reports: ${REPORTS_SERVICE_URL:http://localhost:8088}
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 30s
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH:30}
+            redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST:60}
+            key-resolver: "#{@userKeyResolver}"
+      routes:
+        # ─── auth-service ───
+        - id: auth
+          uri: ${app.service-urls.auth}
+          predicates:
+            - Path=/api/v1/auth/**,/api/v1/users/**
+
+        # ─── residents-service ───
+        - id: residents
+          uri: ${app.service-urls.residents}
+          predicates:
+            - Path=/api/v1/residents/**,/api/v1/rooms/**,/api/v1/inventory/**,/api/v1/buildings/**,/api/v1/floors/**
+
+        # ─── requests-service ───
+        - id: requests
+          uri: ${app.service-urls.requests}
+          predicates:
+            - Path=/api/v1/requests/**
+
+        # ─── appliances-service ───
+        - id: appliances
+          uri: ${app.service-urls.appliances}
+          predicates:
+            - Path=/api/v1/appliances/**
+
+        # ─── consumables-service ───
+        - id: consumables
+          uri: ${app.service-urls.consumables}
+          predicates:
+            - Path=/api/v1/consumables/**
+
+        # ─── notifications-service ───
+        - id: notifications
+          uri: ${app.service-urls.notifications}
+          predicates:
+            - Path=/api/v1/notifications/**
+
+        # ─── reports-service ───
+        - id: reports
+          uri: ${app.service-urls.reports}
+          predicates:
+            - Path=/api/v1/reports/**
+
+        # ─── Aggregated Swagger: проксирование OpenAPI документации ───
+        - id: auth-openapi
+          uri: ${app.service-urls.auth}
+          predicates:
+            - Path=/v3/api-docs/auth
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: residents-openapi
+          uri: ${app.service-urls.residents}
+          predicates:
+            - Path=/v3/api-docs/residents
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: requests-openapi
+          uri: ${app.service-urls.requests}
+          predicates:
+            - Path=/v3/api-docs/requests
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: appliances-openapi
+          uri: ${app.service-urls.appliances}
+          predicates:
+            - Path=/v3/api-docs/appliances
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: consumables-openapi
+          uri: ${app.service-urls.consumables}
+          predicates:
+            - Path=/v3/api-docs/consumables
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: notifications-openapi
+          uri: ${app.service-urls.notifications}
+          predicates:
+            - Path=/v3/api-docs/notifications
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: reports-openapi
+          uri: ${app.service-urls.reports}
+          predicates:
+            - Path=/v3/api-docs/reports
+          filters:
+            - SetPath=/v3/api-docs

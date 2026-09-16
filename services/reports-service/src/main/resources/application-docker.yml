@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/dormitory
+  kafka:
+    bootstrap-servers: dormitory-kafka:29092
+
+logging:
+  level:
+    ru.dstu.dormitory.reports_service: INFO

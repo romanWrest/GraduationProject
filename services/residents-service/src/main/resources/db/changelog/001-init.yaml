@@ -1,0 +1,285 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-room
+      author: residents-service
+      changes:
+        - createTable:
+            schemaName: residents
+            tableName: room
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: number
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_room_number
+              - column:
+                  name: floor
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: capacity
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: VARCHAR(512)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-resident
+      author: residents-service
+      changes:
+        - createTable:
+            schemaName: residents
+            tableName: resident
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_resident_user_id
+              - column:
+                  name: kind
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: faculty
+                  type: VARCHAR(128)
+              - column:
+                  name: study_group
+                  type: VARCHAR(64)
+              - column:
+                  name: department
+                  type: VARCHAR(128)
+              - column:
+                  name: phone
+                  type: VARCHAR(32)
+              - column:
+                  name: contact_info
+                  type: VARCHAR(512)
+              - column:
+                  name: room_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_resident_room
+                    referencedTableSchemaName: residents
+                    referencedTableName: room
+                    referencedColumnNames: id
+              - column:
+                  name: enrolled_at
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: evicted_at
+                  type: DATE
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-residency-history
+      author: residents-service
+      changes:
+        - createTable:
+            schemaName: residents
+            tableName: residency_history
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resident_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_history_resident
+                    referencedTableSchemaName: residents
+                    referencedTableName: resident
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: room_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_history_room
+                    referencedTableSchemaName: residents
+                    referencedTableName: room
+                    referencedColumnNames: id
+              - column:
+                  name: moved_in_at
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: moved_out_at
+                  type: DATE
+              - column:
+                  name: reason
+                  type: VARCHAR(512)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-inventory-item
+      author: residents-service
+      changes:
+        - createTable:
+            schemaName: residents
+            tableName: inventory_item
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: room_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_inventory_room
+                    referencedTableSchemaName: residents
+                    referencedTableName: room
+                    referencedColumnNames: id
+              - column:
+                  name: type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: serial_number
+                  type: VARCHAR(128)
+              - column:
+                  name: state
+                  type: VARCHAR(32)
+                  defaultValue: NEW
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: VARCHAR(512)
+              - column:
+                  name: written_off_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: written_off_reason
+                  type: VARCHAR(512)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-indexes
+      author: residents-service
+      changes:
+        - createIndex:
+            indexName: idx_resident_user
+            schemaName: residents
+            tableName: resident
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_resident_room
+            schemaName: residents
+            tableName: resident
+            columns:
+              - column:
+                  name: room_id
+        - createIndex:
+            indexName: idx_resident_kind
+            schemaName: residents
+            tableName: resident
+            columns:
+              - column:
+                  name: kind
+        - sql:
+            sql: "CREATE INDEX idx_resident_active ON residents.resident (evicted_at) WHERE evicted_at IS NULL"
+            dbms: postgresql
+        - createIndex:
+            indexName: idx_history_resident
+            schemaName: residents
+            tableName: residency_history
+            columns:
+              - column:
+                  name: resident_id
+        - createIndex:
+            indexName: idx_history_room
+            schemaName: residents
+            tableName: residency_history
+            columns:
+              - column:
+                  name: room_id
+        - createIndex:
+            indexName: idx_inventory_room
+            schemaName: residents
+            tableName: inventory_item
+            columns:
+              - column:
+                  name: room_id
+        - createIndex:
+            indexName: idx_inventory_state
+            schemaName: residents
+            tableName: inventory_item
+            columns:
+              - column:
+                  name: state

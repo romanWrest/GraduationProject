@@ -1,0 +1,27 @@
+spring:
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:false}
+          starttls:
+            enable: ${SMTP_STARTTLS:false}
+        transport:
+          protocol: smtp
+  thymeleaf:
+    cache: true
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+
+app:
+  mail:
+    from-address: ${MAIL_FROM:noreply@dormitory.local}
+    from-name: ${MAIL_FROM_NAME:Dormitory System}
+  frontend:
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}

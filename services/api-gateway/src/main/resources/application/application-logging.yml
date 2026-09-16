@@ -1,0 +1,8 @@
+logging:
+  level:
+    root: INFO
+    ru.dstu.dormitory.api_gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: INFO
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

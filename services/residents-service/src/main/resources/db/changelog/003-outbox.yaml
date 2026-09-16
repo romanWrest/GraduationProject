@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-outbox-events
+      author: residents-service
+      changes:
+        - createTable:
+            schemaName: residents
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+  - changeSet:
+      id: 003-outbox-indexes
+      author: residents-service
+      changes:
+        - sql:
+            sql: "CREATE INDEX idx_outbox_unsent ON residents.outbox_events (created_at) WHERE sent_at IS NULL"
+            dbms: postgresql

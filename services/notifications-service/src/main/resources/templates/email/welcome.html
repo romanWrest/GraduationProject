@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Добро пожаловать</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Пользователь</span>!</h1>
+    <p>Ваш аккаунт в системе общежития создан.</p>
+    <p>Логин: <strong th:text="${email}">user@example.com</strong></p>
+    <p>Временный пароль: <strong th:text="${tempPassword}">***</strong></p>
+    <p>Пожалуйста, смените пароль при первом входе.</p>
+    <p><a th:href="${actionUrl}" th:text="${actionUrl}">Перейти на портал</a></p>
+</body>
+</html>

@@ -1,0 +1,5 @@
+requests:
+  autoclose-after-days: ${AUTOCLOSE_AFTER_DAYS:3}
+  reopen-window-days: ${REOPEN_WINDOW_DAYS:7}
+  pool-stale-after-hours: ${POOL_STALE_AFTER_HOURS:24}
+  autoclose-fixed-delay-ms: 3600000

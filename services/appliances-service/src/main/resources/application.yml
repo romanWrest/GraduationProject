@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: appliances-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  config:
+    import:
+      - classpath:application/application-server.yml
+      - classpath:application/application-database.yml
+      - classpath:application/application-redis.yml
+      - classpath:application/application-kafka.yml
+      - classpath:application/application-jwt.yml
+      - classpath:application/application-security.yml
+      - classpath:application/application-integration.yml
+      - classpath:application/application-monitoring.yml
+      - classpath:application/application-logging.yml
+      - classpath:application/application-openapi.yml
+      - classpath:application/application-outbox.yml
+      - classpath:application/application-app.yml
+  lifecycle:
+    timeout-per-shutdown-phase: 30s

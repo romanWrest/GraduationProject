@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Заявка создана</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Пользователь</span>!</h1>
+    <p>Заявка <strong>#<span th:text="${requestShortId}">—</span></strong> создана.</p>
+    <p>Тип: <span th:text="${requestType}">—</span></p>
+    <p th:if="${requestTitle}">Тема: <span th:text="${requestTitle}">—</span></p>
+    <p><a th:href="${actionUrl}" th:text="${actionUrl}">Открыть заявку</a></p>
+</body>
+</html>

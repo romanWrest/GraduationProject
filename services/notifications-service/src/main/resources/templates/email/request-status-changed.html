@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Статус заявки</title></head>
+<body>
+    <h1>Здравствуйте, <span th:text="${userName}">Пользователь</span>!</h1>
+    <p>Статус заявки <strong>#<span th:text="${requestShortId}">—</span></strong> изменён:</p>
+    <p>
+        <span th:text="${fromStatus}">—</span> → <strong th:text="${toStatus}">—</strong>
+    </p>
+    <p><a th:href="${actionUrl}" th:text="${actionUrl}">Открыть заявку</a></p>
+</body>
+</html>

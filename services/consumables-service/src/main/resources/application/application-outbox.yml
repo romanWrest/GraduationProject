@@ -1,0 +1,4 @@
+outbox:
+  relay:
+    batch-size: 100
+    fixed-delay-ms: 1000

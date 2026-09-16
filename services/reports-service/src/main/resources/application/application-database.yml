@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/dormitory}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      pool-name: reports-pool
+      connection-timeout: 3000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+  jpa:
+    properties:
+      hibernate:
+        default_schema: reports
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false

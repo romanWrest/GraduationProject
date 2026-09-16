@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/dormitory
+  data:
+    redis:
+      host: redis
+  kafka:
+    bootstrap-servers: dormitory-kafka:29092
+
+integration:
+  residents:
+    url: http://residents-service:8083
+  auth:
+    url: http://auth-service:8081
+
+minio:
+  url: http://minio:9000
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://tempo:4318/v1/traces

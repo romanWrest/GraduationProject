@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dormitory
+  data:
+    redis:
+      host: localhost
+  kafka:
+    bootstrap-servers: localhost:9092
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+integration:
+  auth:
+    url: http://localhost:8081
+
+logging:
+  level:
+    ru.dstu.dormitory.notifications_service: DEBUG

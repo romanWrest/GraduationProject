@@ -1,0 +1,5 @@
+server:
+  port: 8088
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s

@@ -1,0 +1,3 @@
+jwt:
+  secret: ${JWT_SECRET:dev-secret-for-local-minimum-32-characters-please-override}
+  issuer: auth-service

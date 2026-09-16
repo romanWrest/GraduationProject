@@ -1,0 +1,46 @@
+# ==== Секреты / окружение ====
+.env
+.env.local
+*.env.local
+# (frontend/.env.development, .env.production и *.env.example намеренно НЕ игнорируются —
+#  это несекретная конфигурация/шаблоны)
+
+# ==== Java / Maven ====
+target/
+*.jar
+*.war
+*.class
+dependency-reduced-pom.xml
+*.log
+
+# ==== Node / Frontend ====
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==== TypeScript build info ====
+*.tsbuildinfo
+
+# ==== IDE / редакторы ====
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ==== ОС ====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==== Docker / данные ====
+*.pid

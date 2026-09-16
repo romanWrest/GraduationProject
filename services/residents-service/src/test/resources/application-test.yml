@@ -1,0 +1,42 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.cloud.openfeign.FeignAutoConfiguration
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: false
+  main:
+    allow-bean-definition-overriding: true
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 1000
+        readTimeout: 1000
+
+auth-service:
+  url: http://localhost:0
+  service-token: test
+
+jwt:
+  secret: dGVzdC1qd3Qtc2VjcmV0LWZvci11bml0LXRlc3RzLW9ubHktcGxlYXNlLWlnbm9yZQ==
+  issuer: test
+
+security:
+  service-token: test-service-token
+
+outbox:
+  relay:
+    enabled: false
+    fixed-delay-ms: 60000
+    batch-size: 50

@@ -1,0 +1,5 @@
+jwt:
+  secret: ${JWT_SECRET:dev-secret-for-local-minimum-32-characters-please-override}
+  access-ttl: ${JWT_ACCESS_TTL:PT15M}
+  refresh-ttl: ${JWT_REFRESH_TTL:P7D}
+  issuer: auth-service

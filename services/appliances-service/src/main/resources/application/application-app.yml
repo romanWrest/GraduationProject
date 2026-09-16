@@ -1,0 +1,2 @@
+app:
+  room-power-limit-watts: ${APP_ROOM_POWER_LIMIT_WATTS:3500}

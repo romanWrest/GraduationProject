@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-outbox-events
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: outbox_events
+            schemaName: auth
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: timestamptz
+        - sql:
+            sql: CREATE INDEX idx_outbox_unsent ON auth.outbox_events(created_at) WHERE sent_at IS NULL

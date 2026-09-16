@@ -1,0 +1,8 @@
+logging:
+  level:
+    root: INFO
+    ru.dstu.dormitory.reports_service: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

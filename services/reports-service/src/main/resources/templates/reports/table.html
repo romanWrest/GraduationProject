@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${report.title}">Отчёт</title>
+    <style>
+        @page { size: A4 landscape; margin: 12mm; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 9pt; color: #222; }
+        h1 { font-size: 14pt; margin: 0 0 4pt 0; }
+        .meta { color: #555; font-size: 9pt; margin-bottom: 8pt; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 0.5pt solid #888; padding: 3pt 5pt; vertical-align: top; }
+        th { background: #e6e6e6; text-align: left; }
+        tr:nth-child(even) td { background: #fafafa; }
+        .totals { margin-top: 8pt; }
+        .totals th, .totals td { border: 0; padding: 1pt 6pt 1pt 0; }
+        .totals th { width: 40%; }
+        .footer { position: fixed; bottom: 4mm; right: 4mm; color: #888; font-size: 8pt; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${report.title}">Отчёт</h1>
+    <div class="meta" th:if="${report.subtitle}" th:text="${report.subtitle}">Период</div>
+    <div class="meta">Сформировано: <span th:text="${generatedAt}"></span></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th th:each="h : ${report.headers}" th:text="${h}">Колонка</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="row : ${report.rows}">
+                <td th:each="cell : ${row}" th:text="${cell == null ? '' : cell}">—</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="totals" th:if="${report.totals != null and !report.totals.isEmpty()}">
+        <tr th:each="entry : ${report.totals}">
+            <th th:text="${entry.key}">Метрика</th>
+            <td th:text="${entry.value}">—</td>
+        </tr>
+    </table>
+
+    <div class="footer">Система управления общежитием · ДГТУ</div>
+</body>
+</html>

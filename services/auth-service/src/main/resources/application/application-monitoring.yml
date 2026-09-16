@@ -1,0 +1,38 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        # Какие actuator-эндпоинты доступны по HTTP
+        # health - статус сервиса (/actuator/health)
+        # info - информация о сервисе (/actuator/info)
+        # prometheus - метрики в формате Prometheus (/actuator/prometheus)
+        # metrics - метрики в формате Spring (/actuator/metrics)
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        # Включает эндпоинты для Kubernetes:
+        # /actuator/health/liveness  - жив ли сервис (если нет - k8s перезапустит pod)
+        # /actuator/health/readiness - готов ли принимать трафик (если нет - k8s не будет слать запросы)
+        enabled: true
+      show-details: when-authorized # Подробности health-чека только для авторизованных пользователей
+  health:
+    livenessstate:
+      enabled: true  # Сервис жив? (не завис, не в deadlock)
+    readinessstate:
+      enabled: true  # Сервис готов? (поднялись все коннекции - БД, Kafka, Redis)
+    redis:
+      enabled: true  # Включает проверку доступности Redis в /actuator/health
+  tracing:
+    sampling:
+      # Какой % запросов трейсить (записывать путь запроса через сервисы)
+      # 1.0 = 100% (для разработки/отладки), 0.1 = 10% (для прода - не нагружать)
+      # 0.0 = выключено (если нет коллектора трейсов - Tempo/Jaeger)
+      probability: 0.0
+  otlp:
+    tracing:
+      # Адрес коллектора трейсов (OpenTelemetry Collector / Grafana Tempo)
+      # Spans (шаги запроса) отправляются сюда по протоколу OTLP HTTP
+      # Порт 4318 - стандартный OTLP HTTP порт
+      # В docker-compose прокидывается через env: OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

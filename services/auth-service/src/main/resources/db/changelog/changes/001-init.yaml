@@ -1,0 +1,213 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init-create-schema
+      author: auth-service
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS auth
+
+  - changeSet:
+      id: 001-init-users
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: users
+            schemaName: auth
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_users_email
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone
+                  type: varchar(32)
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-init-roles
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column:
+                  name: id
+                  type: smallint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_roles_code
+
+  - changeSet:
+      id: 001-init-user-roles
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: user_roles
+            schemaName: auth
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_roles_user
+                    references: auth.users(id)
+                    deleteCascade: true
+              - column:
+                  name: role_id
+                  type: smallint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_roles_role
+                    references: auth.roles(id)
+        - addPrimaryKey:
+            tableName: user_roles
+            schemaName: auth
+            columnNames: user_id, role_id
+            constraintName: pk_user_roles
+
+  - changeSet:
+      id: 001-init-password-reset-tokens
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: password_reset_tokens
+            schemaName: auth
+            columns:
+              - column:
+                  name: token_hash
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_prt_user
+                    references: auth.users(id)
+                    deleteCascade: true
+              - column:
+                  name: expires_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: used
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-init-audit-log
+      author: auth-service
+      changes:
+        - createTable:
+            tableName: audit_log
+            schemaName: auth
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: actor_id
+                  type: uuid
+              - column:
+                  name: action
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_type
+                  type: varchar(64)
+              - column:
+                  name: target_id
+                  type: varchar(128)
+              - column:
+                  name: meta
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-init-indexes
+      author: auth-service
+      changes:
+        - createIndex:
+            tableName: users
+            schemaName: auth
+            indexName: idx_users_email
+            columns:
+              - column:
+                  name: email
+        - createIndex:
+            tableName: audit_log
+            schemaName: auth
+            indexName: idx_audit_actor_created
+            columns:
+              - column:
+                  name: actor_id
+              - column:
+                  name: created_at
+                  descending: true

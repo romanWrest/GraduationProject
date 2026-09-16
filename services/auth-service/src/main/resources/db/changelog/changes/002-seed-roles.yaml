@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-roles
+      author: auth-service
+      changes:
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: ADMIN }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: RESIDENT }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: GATEKEEPER }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: EXECUTOR_ELECTRIC }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: EXECUTOR_PLUMBING }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: EXECUTOR_CARPENTRY }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: EXECUTOR_GAS }
+        - insert:
+            tableName: roles
+            schemaName: auth
+            columns:
+              - column: { name: code, value: PROPERTY_MANAGER }
